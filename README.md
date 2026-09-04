@@ -8,11 +8,13 @@
 
 ---
 
-## 1. Executive Summary
+## 1. Project Metadata & Identity Assets
 
-Enterprises face a fundamental dilemma when deploying autonomous settlement agents: on-chain executions expose confidential corporate pay rates, supplier identities, and contract volumes to the public ledger.
-
-**T3N Confidential Sentinel** resolves this challenge by executing risk assessment and treasury settlement logic inside Terminal 3's Trusted Execution Environments (TEE). Enterprise policies (e.g., dual-signature limits and invoice categorizations) are evaluated entirely in hardware-isolated enclaves, yielding verifiable cryptographic attestation hashes without exposing plain data.
+- **Project Name:** T3N Confidential Sentinel
+- **Target Network:** Terminal 3 ADK (v2 / Confidential Compute)
+- **Agent Identity (DID):** `did:t3n:b16d0d37f55ffd79fa7d41390c56169a6a798f37`
+- **Submission Category:** Useful & Maintainable Enterprise Agents on Terminal 3
+- **Production Engine:** Next.js 16 | TypeScript | Tailwind CSS
 
 ---
 
@@ -20,48 +22,38 @@ Enterprises face a fundamental dilemma when deploying autonomous settlement agen
 
 ```
 +─────────────────────────────────────────────────────────────────────────────+
-|                         Enterprise Presentation Tier                        |
-|        (Next.js 15+ App Router, Tailwind CSS, Strict TypeScript)            |
+|                   Enterprise ERP / Invoicing Webhook                        |
+|       (Payload: TxID, Payee DID, USD Amount, Document Keccak256)            |
 +──────────────────────────────────────┬──────────────────────────────────────+
-                                       │ Strongly Typed HTTP JSON RPC
+                                       │
                                        ▼
 +─────────────────────────────────────────────────────────────────────────────+
-|                      Sentinel Domain Core Orchestrator                      |
+|                      API Gateway / App Router Edge.                         |
+|                  (Zod Schema Sanitization & Nonce Check)                    |
 |   ┌────────────────────────────────┐     ┌──────────────────────────────┐   |
-|   │ Sanitization & Zod Validation  │     │ Policy Guardrail Verifier    │   |
+|   │   T3N Enclave Session Engine   │     │     T3 IPFS DAG Storage      │   |
+|   │   (did:t3n:b16d... Key Auth)   │     │  (Encrypted Invoice Store)   │   |
 |   └────────────────────────────────┘     └──────────────────────────────┘   |
 +──────────────────────────────────────┬──────────────────────────────────────+
-                                       │ Authenticated Enclave Channel
+                                       │
                                        ▼
 +─────────────────────────────────────────────────────────────────────────────+
-|                          Terminal 3 ADK Core Gateway                        |
-|  DID Identity: did:t3n:b16d0d37f55ffd79fa7d41390c56169a6a798f37             |
-|  ┌─────────────────────────────────┐     ┌──────────────────────────────┐   |
-|  │  T3N Session & Enclave Manager  │     │  Hardware Attestation Emitter│   |
-|  └────────────────┬────────────────┘     └──────────────┬───────────────┘   |
-+───────────────────┼─────────────────────────────────────┼───────────────────+
-                    │                                     │
-                    ▼                                     ▼
-+──────────────────────────────────────+   +──────────────────────────────────+
-|  Confidential Storage (Maps Engine)  |   |  TEE Confidential Runtime        |
-|  z::tenant::settlement::*            |   |  Remote Enclave Attestation      |
-|  z::tenant::compliance_rules        |   |  Policy Matrix: $50,000 threshold|
-+──────────────────────────────────────+   +──────────────────────────────────+
+|                    Confidential Execution Logic (TEE)                       |
+|          - Evaluation against Dynamic Threshold ($50,000 USD)               |
+|          - Auto-Approval / Dual-DID Governance Escalation Flag              |
+|          - Real-Time Cryptographic Attestation Hash (`0xattest_...`)        |
++──────────────────────────────────────┬──────────────────────────────────────+
+                                       │
+                                       ▼
++─────────────────────────────────────────────────────────────────────────────+
+|                           In-Memory Audit Ledger                            |
+|                 (Client-Side Decoupled Observable Stream)                   |
++─────────────────────────────────────────────────────────────────────────────+
 ```
 
 ---
 
-## 3. Configuration & Identity Assets
-
-The Sentinel Agent operates under the following verified credentials:
-
-- **Agent DID**: `did:t3n:b16d0d37f55ffd79fa7d41390c56169a6a798f37`[cite: 1]
-- **API Access Key**: Provided via environment injection (`T3N_API_KEY`)[cite: 1]
-- **Default Autonomous Threshold**: `$50,000 USD` (configurable per tenant)
-
----
-
-## 4. Quickstart Guide
+## 3. Quickstart & Local Deployment
 
 ### Prerequisites
 
@@ -70,26 +62,29 @@ The Sentinel Agent operates under the following verified credentials:
 
 ### Installation & Execution
 
-```bash
 # 1. Clone repository
-git clone [https://github.com/your-username/t3n-confidential-sentinel.git](https://github.com/your-username/t3n-confidential-sentinel.git)
-cd t3n-confidential-sentinel
+
+git clone [https://github.com/pinfinity1/t3n.git](https://github.com/pinfinity1/t3n.git)
+cd t3n
 
 # 2. Install dependencies
+
 npm install
 
 # 3. Setup Environment Variables
+
 cp .env.example .env.local
 
-# 4. Launch Development Server
-npm run dev
-```
+# (Ensure T3N_API_KEY and DID are set correctly)
 
-Visit `http://localhost:3000` to interact with the Sentinel Dashboard.
+# 4. Launch Production Build
+
+npm run build
+npm run start
 
 ---
 
-## 5. Ease of Maintenance & Post-Challenge Handover Protocol
+## 4. Ease of Maintenance & Post-Challenge Handover Protocol
 
 ### Intent on Continuation
 
@@ -100,12 +95,12 @@ Visit `http://localhost:3000` to interact with the Sentinel Dashboard.
 Should the Terminal 3 core team decide to adopt or maintain this infrastructure, the handover requires zero architectural changes:
 
 1. **Stateless Node Operations**: The orchestration service contains zero local persistent disks. It can be deployed directly to Vercel, AWS ECS, or Fly.io via standard containerization.
-2. **DID Key Transfer**: Ownership of the tenant DID identity (`did:t3n:b16d0d37f55ffd79fa7d41390c56169a6a798f37`) can be seamlessly transferred to the Foundation's multisig key controller[cite: 1].
+2. **DID Key Transfer**: Ownership of the tenant DID identity (`did:t3n:b16d0d37f55ffd79fa7d41390c56169a6a798f37`) can be seamlessly transferred to the Foundation's multisig key controller.
 3. **Decoupled Business Rules**: Enterprise limits (`MAX_AUTO_APPROVAL_LIMIT`) and category definitions are managed via `src/config/env.ts` and the encrypted map namespace (`z::tenant::compliance_rules`), allowing hot reconfiguration without redeployments.
 
 ---
 
-## 6. Upstream Bug Reports & Developer Experience (DX) Audit
+## 5. Upstream Bug Reports & Developer Experience (DX) Audit
 
 During the end-to-end integration and load validation with the Terminal 3 ADK and documentation walkthrough, the following upstream issues were identified:
 
@@ -129,7 +124,7 @@ During the end-to-end integration and load validation with the Terminal 3 ADK an
 
 ---
 
-## 7. Security Hardening & Edge-Case Audit
+## 6. Security Hardening & Edge-Case Audit
 
 | Attack Vector / Edge Case  | Mitigation Implemented                                                                                   |
 | :------------------------- | :------------------------------------------------------------------------------------------------------- |
